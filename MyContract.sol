@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 contract Warranty {
-    uint256 public trr = 0;
+    uint256 internal trr = 0;
 
     address internal retailer_id;
     uint256 internal warrantyPeriod;
@@ -12,6 +12,7 @@ contract Warranty {
     mapping(uint256 => bool) internal not_burnt;
     bool internal transfered = false;
     bool internal not_bought = true;
+
 
     struct tokkenSample {
         string productName;
@@ -57,7 +58,7 @@ contract Warranty {
         }
     }
 
-    function check_owner() internal returns(uint256){
+    function check_owner() internal view returns(uint256){
         for(uint i=1; i<=purchases_cnt; i++){
             if(msg.sender==owners[purchases[i]]){
                 return purchases[i];
@@ -66,7 +67,7 @@ contract Warranty {
         return 0;
     }
 
-    function is_valid(uint256 _id) internal returns(bool){
+    function is_valid(uint256 _id) internal view returns(bool){
         if(block.timestamp >= details[_id].bought_on+details[_id].warrantyPeriod){
             return false;
         }else{
@@ -75,6 +76,8 @@ contract Warranty {
     }
 
     function burn(uint256 _id) internal{
+        delete owners[_id];
+        delete details[_id];
         not_burnt[_id] = false;
     }
 
@@ -93,8 +96,8 @@ contract Warranty {
     }
 
     function Remaining_Time(uint256 _id) public returns(uint256){
-        if(details[_id].warrantyPeriod-block.timestamp > 0){
-            return details[_id].warrantyPeriod-block.timestamp;
+        if((details[_id].bought_on + details[_id].warrantyPeriod)-block.timestamp > 0){
+            return (details[_id].bought_on + details[_id].warrantyPeriod)-block.timestamp;
         }else{
             burn(_id);
             return 0;
